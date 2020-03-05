@@ -82,7 +82,11 @@ const Game = () => {
     setPlayer(player => {
       const newPos = getNewPlayerPos("down");
       if (player.pos === newPos) {
-        setMap(map => PrintPlayerInMap(player, map));
+        setMap(map => {
+          const mapWithPlayer = PrintPlayerInMap(player, map);
+          const mapCleared = checkMap(mapWithPlayer);
+          return mapCleared;
+        });
         const newPlayer = getRandomPlayer(player);
         if (!validatePosition(newPlayer.pos, newPlayer.bloco))
           setMap(initialMap); //TODO: lose game
@@ -90,7 +94,6 @@ const Game = () => {
       }
       return { ...player, pos: newPos };
     });
-    checkMap();
   };
 
   const rotatePlayer = () => {
@@ -130,7 +133,7 @@ const Game = () => {
     }
   };
 
-  const checkMap = React.useCallback(() => {
+  const checkMap = React.useCallback(map => {
     let rowsClear = [];
     map.forEach((row, y) => {
       let clear = true;
@@ -139,15 +142,19 @@ const Game = () => {
       });
       if (clear) rowsClear.push(y);
     });
-    if (rowsClear.length > 0)
-      setMap(map => {
-        let newMap = map.slice();
-        rowsClear.forEach(y => {
-          for (let mapY = newMap.length - 1; mapY >= 0; mapY--)
-            if (mapY <= y && mapY > 0) newMap[mapY] = map[mapY - 1];
-        });
-        return newMap;
+    if (rowsClear.length > 0) {
+      let newMap = map.slice();
+      rowsClear.forEach(y => {
+        for (let mapY = newMap.length - 1; mapY >= 0; mapY--)
+          if (mapY <= y)
+            if (mapY > 0) 
+              newMap[mapY] = newMap[mapY - 1]
+            else
+              newMap[mapY] = [...new Array(STAGE_WIDTH)].map(() => ({ fill: 0, color: [] }));
       });
+      return newMap;
+    }
+    return map;
   }, [map]);
 
   const validatePosition = React.useCallback(
