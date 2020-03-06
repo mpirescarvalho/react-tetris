@@ -5,6 +5,11 @@ import { useInterval } from "../../hooks/useInterval";
 
 import { PrintPlayerInMap } from "../../utils/Utils";
 
+//TODO: Organização do componente "Game" (Separar codigo em hooks, outros components e funcoes)
+//TODO: Styling stage
+//TODO: Level, score, cleared lines count
+//TODO: Hint de onde o bloco vai cair
+
 const STAGE_HEIGHT = 18;
 const STAGE_WIDTH = 10;
 
