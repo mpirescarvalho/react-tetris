@@ -1,7 +1,7 @@
 import React from "react";
 import styled from "styled-components";
 
-// const PIXEL_SIZE = 25;
+import background from "../../images/background.jpg";
 
 const Game = styled.div`
 	width: 100vw;
@@ -10,7 +10,9 @@ const Game = styled.div`
 	flex-direction: row;
 	justify-content: center;
 	align-items: flex-start;
-	background-color: black;
+	background-image: url(${background});
+	background-size: cover;
+	background-position: center;
 `;
 
 const Next = styled.div`
