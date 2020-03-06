@@ -1,8 +1,8 @@
 import React from "react";
 import "./styles.css";
 
-import Game from "./components/Game";
+import Tetris from "./components/Tetris";
 
 export default function App() {
-  return <Game />;
+  return <Tetris />;
 }
