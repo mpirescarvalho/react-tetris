@@ -1,5 +1,7 @@
-import React from "react";
+import React, {useState, useEffect} from "react";
 import styled from "styled-components";
+
+import useWindowDimensions from '../../hooks/useWindowDimensions';
 
 import background from "../../images/background.jpg";
 
@@ -9,16 +11,22 @@ const Game = styled.div`
 	display: flex;
 	flex-direction: row;
 	justify-content: center;
-	align-items: flex-start;
+	align-items: center;
 	background-image: url(${background});
 	background-size: cover;
 	background-position: center;
 `;
 
+const ContainerNext = styled.div`
+	height: ${props => (props.pixelSize * 18) + ((18 / 3) * 1)}px;
+	margin-right: 10px;
+`;
+
 const Next = styled.div`
-	width: 100px;
-	height: 100px;
+	width: ${props => props.pixelSize * 4}px;
+	height: ${props => props.pixelSize * 4}px;
 	background-color: black;
+	border: 3px solid white;
 	overflow: hidden;
 	display: flex;
 	flex-direction: column;
@@ -27,8 +35,7 @@ const Next = styled.div`
 `;
 
 const StyledStage = styled.div`
-	width: 50%;
-	height: 100%;
+	border: 3px solid white;
 	background-color: black;
 	overflow: hidden;
 	display: flex;
@@ -41,75 +48,83 @@ const Row = styled.div`
 	display: flex;
 	flex-direction: row;
 	justify-content: center;
-	width: 100%;
-	height: 100%;
+	height: ${props => props.pixelSize}px;
 `;
 
 const Pixel = React.memo(styled.div`
-  width: 100%;
-  height: 100%;
-  /* border-top: 1px solid ${props => (props.fill === 1 ? "grey" : "#aaa")};
-  border-right: 1px solid ${props => (props.fill === 1 ? "grey" : "#aaa")};
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: ${props =>
-			props.fill === 1
-				? `rgb(${props.color[0]},${props.color[1]},${props.color[2]})}`
-				: "#aaa"}; */
-
-
-  /* border-radius: 5px; */
+  width: ${props => props.pixelSize}px;
+  height: ${props => props.pixelSize}px;
   background: ${props =>
 			props.fill === 1
 				? `rgb(${props.color[0]},${props.color[1]},${props.color[2]}, 0.8)}`
-				: "#aaa"};
-  border: ${props => (props.fill === 0 ? "4px solid" : "4px solid")};
-  border-bottom-color: ${props =>
-			props.fill === 1
-				? `rgb(${props.color[0]},${props.color[1]},${props.color[2]}, 0.1)}`
-				: "#aaa"};
-  border-right-color: ${props =>
-			props.fill === 1
-				? `rgb(${props.color[0]},${props.color[1]},${props.color[2]}, 0.1)}`
-				: "#aaa"};
-  border-top-color: ${props =>
-			props.fill === 1
-				? `rgb(${props.color[0]},${props.color[1]},${props.color[2]}, 1)}`
-				: "#aaa"};
-  border-left-color: ${props =>
-			props.fill === 1
-				? `rgb(${props.color[0]},${props.color[1]},${props.color[2]}, 0.3)}`
-				: "#aaa"};
-
+				: "inherited"};
+	border-left: 1px solid ${props => props.stage || props.fill ? '#222' : 'black'};
+	border-top: 1px solid ${props => props.stage || props.fill ? '#222' : 'black'};
 `);
 
+const getRenderizacaoBloco = bloco => {
+	let trimRowBloco = [];
+	let sumColumn = {};
+	bloco.forEach((row, y) => {
+		let rowSum = 0;
+		row.forEach(pixel => rowSum = rowSum + pixel);
+		if (rowSum > 0)
+			trimRowBloco.push(row);
+		row.forEach((pixel, x) => {
+			sumColumn[x] = (sumColumn[x] ? sumColumn[x] : 0) + pixel;
+		});
+	});
+	let trimBloco = [];
+	trimRowBloco.forEach((row, y) => {
+		let newRow = [];
+		row.forEach((pixel, x) => {
+			if (sumColumn[x] > 0)
+				newRow.push(pixel);
+		})
+		trimBloco.push(newRow);
+	});
+	return trimBloco;
+}
+
 const Stage = ({ map, player }) => {
+	
+	const [pixelSize, setPixelSize] = useState(30);
+	const { width, height } = useWindowDimensions();
+
+	useEffect(() => {
+		let pixelSizeHeight = height / 20;
+		let pixelSizeWidth  = width / 32;
+		setPixelSize(pixelSizeWidth < pixelSizeHeight ? pixelSizeWidth : pixelSizeHeight);
+	}, [width, height]);
+
 	return (
 		<Game>
 			{player.next && (
-				<Next>
-					{player.next.bloco.map((row, y) => (
-						<Row key={`row-${y}`}>
-							{row.map((pixel, x) => {
-								return (
-									<Pixel key={`pixel-${x}`} fill={pixel} color={player.next.color} />
-								);
-							})}
-						</Row>
-					))}
-				</Next>
+				<ContainerNext pixelSize={pixelSize}>
+					<Next pixelSize={pixelSize}>
+						{getRenderizacaoBloco(player.next.bloco).map((row, y) => (
+							<Row pixelSize={pixelSize} key={`row-${y}`}>
+								{row.map((pixel, x) => {
+									return (
+										<Pixel pixelSize={pixelSize} key={`pixel-${x}`} fill={pixel} color={player.next.color} />
+									);
+								})}
+							</Row>
+						))}
+					</Next>
+				</ContainerNext>
 			)}
 			{map && (
 				<StyledStage>
 					{map.map((row, y) => (
-						<Row key={`row-${y}`}>
+						<Row pixelSize={pixelSize} key={`row-${y}`}>
 							{row.map((pixel, x) => {
 								let playerFill =
 									player.bloco.bloco[y - player.pos[0]] &&
 									player.bloco.bloco[y - player.pos[0]][x - player.pos[1]];
 								return (
-									<Pixel
+									<Pixel pixelSize={pixelSize}
+										stage='true'
 										key={`pixel-${x}`}
 										fill={pixel.fill | playerFill}
 										color={playerFill ? player.bloco.color : pixel.color}

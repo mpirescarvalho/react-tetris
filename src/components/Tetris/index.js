@@ -4,7 +4,7 @@ import StartPage from "../StartPage";
 import Game from "../Game";
 
 const Tetris = () => {
-	const [runing, setRuning] = useState(false);
+	const [runing, setRuning] = useState(true);
 	return runing ? (
 		<Game stopClick={() => setRuning(false)} />
 	) : (

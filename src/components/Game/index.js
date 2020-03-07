@@ -5,10 +5,14 @@ import { useInterval } from "../../hooks/useInterval";
 
 import { PrintPlayerInMap } from "../../utils/Utils";
 
-//TODO: Organização do componente "Game" (Separar codigo em hooks, outros components e funcoes)
-//TODO: Styling stage
-//TODO: Level, score, cleared lines count
 //TODO: Hint de onde o bloco vai cair
+//TODO: Organização do componente "Game" (Separar codigo em hooks, outros components e funcoes)
+//TODO: Level, score, cleared lines count
+//TODO: Espaço para descer bloco instantaneamente
+//TODO: Dar um tempo quando o bloco estiver no chão, mas o usuário mexendo
+//TODO: Adicionar mais cores para os blocos
+//TODO: Usar key down para acionar drop fast and key up to release
+//TODO: Add stage themes
 
 const STAGE_HEIGHT = 18;
 const STAGE_WIDTH = 10;
@@ -18,7 +22,7 @@ const initialMap = [...new Array(STAGE_HEIGHT)].map(() =>
 );
 
 const colors = [
-	[34, 29, 35],
+	// [34, 29, 35],
 	[35, 87, 137],
 	[154, 3, 30],
 	// [252, 252, 252],
