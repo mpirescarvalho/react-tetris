@@ -54,12 +54,16 @@ const Row = styled.div`
 const Pixel = React.memo(styled.div`
   width: ${props => props.pixelSize}px;
   height: ${props => props.pixelSize}px;
-  background: ${props =>
+  background-color: ${props =>
 			props.fill === 1
-				? `rgb(${props.color[0]},${props.color[1]},${props.color[2]}, 0.8)}`
+				? props.color
 				: "inherited"};
-	border-left: 1px solid ${props => props.stage || props.fill ? '#222' : 'black'};
-	border-top: 1px solid ${props => props.stage || props.fill ? '#222' : 'black'};
+	box-shadow: ${props => 
+			props.hint 
+			? `inset 0 0 3px ${props.playerColor}, inset 0 0 3px white`
+			: 'none'};
+	border-left: 1px solid ${props => props.stage || props.fill || props.hint ? '#222' : 'black'};
+	border-top: 1px solid ${props => props.stage || props.fill || props.hint ? '#222' : 'black'};
 `);
 
 const getRenderizacaoBloco = bloco => {
@@ -86,7 +90,7 @@ const getRenderizacaoBloco = bloco => {
 	return trimBloco;
 }
 
-const Stage = ({ map, player }) => {
+const Stage = ({ map, player, hint }) => {
 	
 	const [pixelSize, setPixelSize] = useState(30);
 	const { width, height } = useWindowDimensions();
@@ -122,13 +126,20 @@ const Stage = ({ map, player }) => {
 								let playerFill =
 									player.bloco.bloco[y - player.pos[0]] &&
 									player.bloco.bloco[y - player.pos[0]][x - player.pos[1]];
+								let playerHint =
+									hint.bloco.bloco[y - hint.pos[0]] &&
+									hint.bloco.bloco[y - hint.pos[0]][x - hint.pos[1]];
 								return (
-									<Pixel pixelSize={pixelSize}
+									<Pixel 
+										hint={playerHint}
+										pixelSize={pixelSize}
 										stage='true'
 										key={`pixel-${x}`}
 										fill={pixel.fill | playerFill}
 										color={playerFill ? player.bloco.color : pixel.color}
-									/>
+										playerColor={player.bloco.color}
+									>
+									</Pixel>
 								);
 							})}
 						</Row>

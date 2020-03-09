@@ -1,17 +1,15 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 import Stage from "../Stage";
 import { useInterval } from "../../hooks/useInterval";
 
 import { PrintPlayerInMap } from "../../utils/Utils";
 
-//TODO: Hint de onde o bloco vai cair
 //TODO: Organização do componente "Game" (Separar codigo em hooks, outros components e funcoes)
 //TODO: Level, score, cleared lines count
 //TODO: Espaço para descer bloco instantaneamente
 //TODO: Dar um tempo quando o bloco estiver no chão, mas o usuário mexendo
 //TODO: Adicionar mais cores para os blocos
-//TODO: Usar key down para acionar drop fast and key up to release
 //TODO: Add stage themes
 
 const STAGE_HEIGHT = 18;
@@ -22,11 +20,13 @@ const initialMap = [...new Array(STAGE_HEIGHT)].map(() =>
 );
 
 const colors = [
-	// [34, 29, 35],
-	[35, 87, 137],
-	[154, 3, 30],
-	// [252, 252, 252],
-	[252, 220, 77]
+	'#e54b4b',
+	'#9a031e',
+	'#fcdc4d',
+	'#005397',
+	'#0bbcd6',
+	'#20ad65',
+	'#f8ebee'
 ];
 
 const I = {
@@ -109,7 +109,9 @@ const Game = () => {
 	const [player, setPlayer] = useState();
 	const [down, setDown] = useState(false);
 	const [pause, setPause] = useState(false);
-
+	const [tick, setTick] = useState(Date.now());
+	const [hintPlayer, setHintPlayer] = useState()
+	
 	const drop = () => {
 		if (!player) {
 			setPlayer(getRandomPlayer());
@@ -142,9 +144,12 @@ const Game = () => {
 	};
 
 	const keyUp = ({ keyCode }) => {
+		const THRESHOLD = 80;
 		// Activate the interval again when user releases down arrow.
 		if (keyCode === 40) {
 			setDown(false);
+			if ((Date.now() - tick) <= THRESHOLD)
+				drop();
 		}
 	};
 
@@ -160,8 +165,8 @@ const Game = () => {
 				setPlayer(player => ({ ...player, pos: getNewPlayerPos("right") }));
 				break;
 			case 40:
+				setTick(Date.now());
 				setDown(true);
-				drop();
 				break;
 			default:
 				break;
@@ -216,6 +221,14 @@ const Game = () => {
 		[map]
 	);
 
+	const calculateHintPlayer = React.useCallback((player) => {
+		const hintBloco = JSON.parse(JSON.stringify(player.bloco));
+		let hintPosition = [ ...player.pos ];
+		while (validatePosition([hintPosition[0] + 1, hintPosition[1]], hintBloco))
+			hintPosition = [hintPosition[0] + 1, hintPosition[1]];
+		return { pos: hintPosition, bloco: hintBloco };
+	}, [validatePosition]);
+
 	const getNewPlayerPos = React.useCallback(
 		movement => {
 			let newPos;
@@ -233,10 +246,16 @@ const Game = () => {
 		() => {
 			drop();
 		},
-		down || pause ? null : 450
+		pause ? null : down ? 50 : 450
 	);
 
-	if (!player) return "loading";
+	useEffect(() => {
+		if (!player)
+			return;
+		setHintPlayer(calculateHintPlayer(player));
+	}, [player, calculateHintPlayer])
+
+	if (!player || !map || !hintPlayer) return "loading";
 	return (
 		<div
 			onBlur={() => setPause(true)}
@@ -245,7 +264,7 @@ const Game = () => {
 			onKeyUp={keyUp}
 			onKeyDown={keyDown}
 		>
-			<Stage map={map} player={player} />
+			<Stage map={map} player={player} hint={hintPlayer} />
 		</div>
 	);
 };
