@@ -7,7 +7,6 @@ import { PrintPlayerInMap } from "../../utils/Utils";
 
 //TODO: Organização do componente "Game" (Separar codigo em hooks, outros components e funcoes)
 //TODO: Level, score, cleared lines count
-//TODO: Espaço para descer bloco instantaneamente
 //TODO: Dar um tempo quando o bloco estiver no chão, mas o usuário mexendo
 //TODO: Adicionar mais cores para os blocos
 //TODO: Add stage themes
@@ -110,7 +109,8 @@ const Game = () => {
 	const [down, setDown] = useState(false);
 	const [pause, setPause] = useState(false);
 	const [tick, setTick] = useState(Date.now());
-	const [hintPlayer, setHintPlayer] = useState()
+	const [hintPlayer, setHintPlayer] = useState();
+	const [spaceReleased, setSpaceReleased] = useState(true);
 	
 	const drop = () => {
 		if (!player) {
@@ -151,7 +151,24 @@ const Game = () => {
 			if ((Date.now() - tick) <= THRESHOLD)
 				drop();
 		}
+		if (keyCode === 32) 
+			setSpaceReleased(true);
 	};
+
+	const forwardDown = () => {
+		setPlayer(player => {
+			const playerCopy = JSON.parse(JSON.stringify(player));
+			playerCopy.pos = [ ...hintPlayer.pos ];
+			setMap(map => {
+				const mapWithPlayer = PrintPlayerInMap(playerCopy, map);
+				const mapCleared = checkMap(mapWithPlayer);
+				return mapCleared;
+			});
+			const newPlayer = getRandomPlayer(player);
+			if (!validatePosition(newPlayer.pos, newPlayer.bloco)) setMap(initialMap); //TODO: lose game
+			return newPlayer;
+		});
+	}
 
 	const keyDown = ({ keyCode }) => {
 		switch (keyCode) {
@@ -167,6 +184,12 @@ const Game = () => {
 			case 40:
 				setTick(Date.now());
 				setDown(true);
+				break;
+			case 32:
+				if (spaceReleased) {
+					setSpaceReleased(false);
+					forwardDown();
+				}
 				break;
 			default:
 				break;
@@ -260,7 +283,7 @@ const Game = () => {
 		<div
 			onBlur={() => setPause(true)}
 			onFocus={() => setPause(false)}
-			tabIndex="1"
+			tabIndex="0"
 			onKeyUp={keyUp}
 			onKeyDown={keyDown}
 		>
