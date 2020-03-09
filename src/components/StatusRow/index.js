@@ -3,29 +3,27 @@ import styled from 'styled-components';
 
 const Container = styled.div`
 	background-color: black;
-	border: 3px solid white;
-	width: 100%;
+	border: ${props => props.borderSize ? props.borderSize : '3'}px solid white;
+	${props => !props.portrait && `width: 100%;`}
 	font-family: "ZCOOL QingKe HuangYou", cursive;
-	padding: 15px 0;
-	margin-bottom: 10px;
+	padding: ${props => props.padding ? props.padding : '15'}px ${props => props.portrait ? props.padding/2 : 0}px; /*15*/
+	margin-bottom: ${props => props.margin ? props.margin : '10'}px; /*10*/ 
 `;
 
 const Title = styled.div`
 	width: 100%;
 	text-align: center;
-	font-size: 2em;
 	color: white;
 `;
 
 const Value = styled.div`
 	width: 100%;
 	text-align: center;
-	font-size: 2em;
 	color: white;
 `;
 
-const StatusRow = ({title, value}) => (
-	<Container>
+const StatusRow = ({title, value, padding, margin, borderSize, portrait}) => (
+	<Container portrait={portrait} padding={padding} margin={margin} borderSize={borderSize}>
 		<Title>
 			{title}
 		</Title>

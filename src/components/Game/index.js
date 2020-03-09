@@ -5,8 +5,8 @@ import { useInterval } from "../../hooks/useInterval";
 
 import { PrintPlayerInMap } from "../../utils/Utils";
 
+//TODO: Portabilidade para mobile (botões)
 //TODO: Organização do componente "Game" (Separar codigo em hooks, outros components e funcoes)
-//TODO: Level, score, cleared lines count
 //TODO: Dar um tempo quando o bloco estiver no chão, mas o usuário mexendo
 //TODO: Add stage themes
 

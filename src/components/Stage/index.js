@@ -2,14 +2,14 @@ import React, {useState, useEffect} from "react";
 import styled from "styled-components";
 
 import useWindowDimensions from '../../hooks/useWindowDimensions';
-import background from "../../images/background-min.jpg";
+import background from "../../images/background.jpg";
 import StatusRow from '../StatusRow';
 
 const Game = styled.div`
 	width: 100vw;
 	height: 100vh;
 	display: flex;
-	flex-direction: row;
+	flex-direction: ${props => props.portrait ? 'column' : 'row'};
 	justify-content: center;
 	align-items: center;
 	background-image: url(${background});
@@ -18,15 +18,17 @@ const Game = styled.div`
 `;
 
 const ContainerNext = styled.div`
-	height: ${props => (props.pixelSize * 18) + ((18 / 3) * 1)}px;
-	margin-right: 10px;
+	${props => !props.portrait && `height: ${(props.pixelSize * 18) + ((18 / 3) * 1)}px;` }
+	${props => props.portrait && `width: ${(props.pixelSize * 10) + ((10 / 3) * 1)}px;` }
+	margin-right: ${props => props.portrait ? 0 : props.pixelSize / 3}px;
+	margin-bottom: ${props => props.portrait ? props.pixelSize / 3 : 0}px;
 `;
 
 const Next = styled.div`
 	width: ${props => props.pixelSize * 3}px;
 	height: ${props => props.pixelSize * 3}px;
 	background-color: black;
-	border: 3px solid white;
+	border: ${props => props.pixelSize / 10}px solid white;
 	overflow: hidden;
 	display: flex;
 	flex-direction: column;
@@ -35,7 +37,7 @@ const Next = styled.div`
 `;
 
 const StyledStage = styled.div`
-	border: 3px solid white;
+	border: ${props => props.pixelSize / 10}px solid white;
 	background-color: black;
 	overflow: hidden;
 	display: flex;
@@ -67,13 +69,16 @@ const Pixel = React.memo(styled.div`
 `);
 
 const ContainerStatus = styled.div`
-	height: ${props => (props.pixelSize * 18) + ((18 / 3) * 1)}px;
 	width: ${props => props.pixelSize * 8}px;
-	margin-left: 10px;
+	${props => !props.portrait && `height: ${(props.pixelSize * 18) + ((18 / 3) * 1)}px;` }
+	${props => props.portrait && `width: ${(props.pixelSize * 10) + ((10 / 3) * 1)}px;` }
+	margin-left: ${props => props.portrait ? 0 : props.pixelSize / 3}px;
+	margin-top: ${props => props.portrait ? props.pixelSize / 3 : 0}px;
 	display: flex;
-	flex-direction: column;
+	flex-direction: ${props => props.portrait ? 'row' : 'column'};
 	align-items: center;
-	justify-content: flex-start;
+	justify-content: ${props => props.portrait ? 'space-between' : 'flex-start'};
+	font-size: ${props => props.pixelSize}px;
 `;
 
 const getRenderizacaoBloco = bloco => {
@@ -103,18 +108,24 @@ const getRenderizacaoBloco = bloco => {
 const Stage = ({ map, player, hint, status }) => {
 	
 	const [pixelSize, setPixelSize] = useState(30);
+	const [portrait, setPortrait] = useState(false);
 	const { width, height } = useWindowDimensions();
-
+	
 	useEffect(() => {
 		let pixelSizeHeight = height / 20;
 		let pixelSizeWidth  = width / 32;
+		if (portrait) {
+			pixelSizeHeight = height / 26;
+			pixelSizeWidth  = width / 12;
+		}
 		setPixelSize(pixelSizeWidth < pixelSizeHeight ? pixelSizeWidth : pixelSizeHeight);
-	}, [width, height]);
+		setPortrait(height > width);
+	}, [width, height, portrait]);
 
 	return (
-		<Game>
+		<Game portrait={portrait}>
 			{player.next && (
-				<ContainerNext pixelSize={pixelSize}>
+				<ContainerNext portrait={portrait} pixelSize={pixelSize}>
 					<Next pixelSize={pixelSize}>
 						{getRenderizacaoBloco(player.next.bloco).map((row, y) => (
 							<Row pixelSize={pixelSize} key={`row-${y}`}>
@@ -129,7 +140,7 @@ const Stage = ({ map, player, hint, status }) => {
 				</ContainerNext>
 			)}
 			{map && (
-				<StyledStage>
+				<StyledStage pixelSize={pixelSize}>
 					{map.map((row, y) => (
 						<Row stage='true' pixelSize={pixelSize} key={`row-${y}`}>
 							{row.map((pixel, x) => {
@@ -157,10 +168,10 @@ const Stage = ({ map, player, hint, status }) => {
 				</StyledStage>
 			)}
 			{status && 
-				<ContainerStatus pixelSize={pixelSize}>
-					<StatusRow title='SCORE' value={status.score} />
-					<StatusRow title='LEVEL' value={status.level} />
-					<StatusRow title='LINES' value={status.lines} />
+				<ContainerStatus portrait={portrait} pixelSize={pixelSize}>
+					<StatusRow portrait={portrait} borderSize={pixelSize/10} margin={pixelSize/3} padding={pixelSize/2} title='SCORE' value={status.score} />
+					<StatusRow portrait={portrait} borderSize={pixelSize/10} margin={pixelSize/3} padding={pixelSize/2} title='LEVEL' value={status.level} />
+					<StatusRow portrait={portrait} borderSize={pixelSize/10} margin={pixelSize/3} padding={pixelSize/2} title='LINES' value={status.lines} />
 				</ContainerStatus>}
 	</Game>
 	);
