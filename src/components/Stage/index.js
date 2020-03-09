@@ -2,8 +2,8 @@ import React, {useState, useEffect} from "react";
 import styled from "styled-components";
 
 import useWindowDimensions from '../../hooks/useWindowDimensions';
-
 import background from "../../images/background.jpg";
+import StatusRow from '../StatusRow';
 
 const Game = styled.div`
 	width: 100vw;
@@ -23,8 +23,8 @@ const ContainerNext = styled.div`
 `;
 
 const Next = styled.div`
-	width: ${props => props.pixelSize * 4}px;
-	height: ${props => props.pixelSize * 4}px;
+	width: ${props => props.pixelSize * 3}px;
+	height: ${props => props.pixelSize * 3}px;
 	background-color: black;
 	border: 3px solid white;
 	overflow: hidden;
@@ -48,12 +48,12 @@ const Row = styled.div`
 	display: flex;
 	flex-direction: row;
 	justify-content: center;
-	height: ${props => props.pixelSize}px;
+	height: ${props => props.stage ? props.pixelSize : props.pixelSize / 1.6}px;
 `;
 
 const Pixel = React.memo(styled.div`
-  width: ${props => props.pixelSize}px;
-  height: ${props => props.pixelSize}px;
+  width: ${props => props.stage ? props.pixelSize : props.pixelSize / 1.6}px;
+  height: ${props => props.stage ? props.pixelSize : props.pixelSize / 1.6}px;
   background-color: ${props =>
 			props.fill === 1
 				? props.color
@@ -65,6 +65,16 @@ const Pixel = React.memo(styled.div`
 	border-left: 1px solid ${props => props.stage || props.fill || props.hint ? '#222' : 'black'};
 	border-top: 1px solid ${props => props.stage || props.fill || props.hint ? '#222' : 'black'};
 `);
+
+const ContainerStatus = styled.div`
+	height: ${props => (props.pixelSize * 18) + ((18 / 3) * 1)}px;
+	width: ${props => props.pixelSize * 8}px;
+	margin-left: 10px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: flex-start;
+`;
 
 const getRenderizacaoBloco = bloco => {
 	let trimRowBloco = [];
@@ -90,7 +100,13 @@ const getRenderizacaoBloco = bloco => {
 	return trimBloco;
 }
 
-const Stage = ({ map, player, hint }) => {
+const status = {
+	score: 120,
+	level: 1,
+	lines: 2
+};
+
+const Stage = ({ map, player, hint, status }) => {
 	
 	const [pixelSize, setPixelSize] = useState(30);
 	const { width, height } = useWindowDimensions();
@@ -121,7 +137,7 @@ const Stage = ({ map, player, hint }) => {
 			{map && (
 				<StyledStage>
 					{map.map((row, y) => (
-						<Row pixelSize={pixelSize} key={`row-${y}`}>
+						<Row stage='true' pixelSize={pixelSize} key={`row-${y}`}>
 							{row.map((pixel, x) => {
 								let playerFill =
 									player.bloco.bloco[y - player.pos[0]] &&
@@ -146,7 +162,13 @@ const Stage = ({ map, player, hint }) => {
 					))}
 				</StyledStage>
 			)}
-		</Game>
+			{status && 
+				<ContainerStatus pixelSize={pixelSize}>
+					<StatusRow title='SCORE' value={status.score} />
+					<StatusRow title='LEVEL' value={status.level} />
+					<StatusRow title='LINES' value={status.lines} />
+				</ContainerStatus>}
+	</Game>
 	);
 };
 

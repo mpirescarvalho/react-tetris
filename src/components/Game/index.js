@@ -8,7 +8,6 @@ import { PrintPlayerInMap } from "../../utils/Utils";
 //TODO: Organização do componente "Game" (Separar codigo em hooks, outros components e funcoes)
 //TODO: Level, score, cleared lines count
 //TODO: Dar um tempo quando o bloco estiver no chão, mas o usuário mexendo
-//TODO: Adicionar mais cores para os blocos
 //TODO: Add stage themes
 
 const STAGE_HEIGHT = 18;
@@ -111,7 +110,27 @@ const Game = () => {
 	const [tick, setTick] = useState(Date.now());
 	const [hintPlayer, setHintPlayer] = useState();
 	const [spaceReleased, setSpaceReleased] = useState(true);
+	const [lines, setlines] = useState(0);
+	const [score, setScore] = useState(0);
+	const [level, setLevel] = useState(1);
 	
+	useEffect(() => {
+		const levelBaseScore = 1000;
+		const nextLevel = level + 1;
+		const nextLevelScore = (levelBaseScore * nextLevel * nextLevel * nextLevel) / 3;
+		console.log('Score to next level:', nextLevelScore);
+		console.log('Remaining: ', nextLevelScore - score);
+		if (level >= nextLevelScore)
+			setLevel(level + 1);
+	}, [level, score]);
+
+	const loseGame = () => {
+		setMap(initialMap); //TODO: lose game
+		setlines(0);
+		setScore(0);
+		setLevel(1);
+	}
+
 	const drop = () => {
 		if (!player) {
 			setPlayer(getRandomPlayer());
@@ -126,7 +145,8 @@ const Game = () => {
 					return mapCleared;
 				});
 				const newPlayer = getRandomPlayer(player);
-				if (!validatePosition(newPlayer.pos, newPlayer.bloco)) setMap(initialMap); //TODO: lose game
+				if (!validatePosition(newPlayer.pos, newPlayer.bloco)) 
+					loseGame();
 				return newPlayer;
 			}
 			return { ...player, pos: newPos };
@@ -165,7 +185,8 @@ const Game = () => {
 				return mapCleared;
 			});
 			const newPlayer = getRandomPlayer(player);
-			if (!validatePosition(newPlayer.pos, newPlayer.bloco)) setMap(initialMap); //TODO: lose game
+			if (!validatePosition(newPlayer.pos, newPlayer.bloco)) 
+				loseGame();
 			return newPlayer;
 		});
 	}
@@ -217,6 +238,10 @@ const Game = () => {
 								color: []
 							}));
 			});
+			setlines(quant => quant + rowsClear.length);
+			const bonusLevel = (100 * (level * level));
+			const bonusRows = (40 * ((rowsClear.length * rowsClear.length) - 1));
+			setScore(score => score + (300 * rowsClear.length) + bonusRows + bonusLevel)
 			return newMap;
 		}
 		return map;
@@ -287,7 +312,9 @@ const Game = () => {
 			onKeyUp={keyUp}
 			onKeyDown={keyDown}
 		>
-			<Stage map={map} player={player} hint={hintPlayer} />
+			<Stage map={map} player={player} hint={hintPlayer}
+				status={{lines, score, level}}
+			/>
 		</div>
 	);
 };
