@@ -7,7 +7,7 @@ import StatusRow from '../StatusRow';
 
 const Game = styled.div`
 	width: 100vw;
-	height: 100vh;
+	height: ${props => props.portrait ? '95' : '100'}vh;
 	display: flex;
 	flex-direction: ${props => props.portrait ? 'column' : 'row'};
 	justify-content: center;
