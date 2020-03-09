@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
+import { useDrag } from 'react-use-gesture'
 
 import Stage from "../Stage";
 import { useInterval } from "../../hooks/useInterval";
+import useWindowDimensions from '../../hooks/useWindowDimensions';
 
 import { PrintPlayerInMap } from "../../utils/Utils";
 
@@ -113,6 +115,8 @@ const Game = () => {
 	const [lines, setlines] = useState(0);
 	const [score, setScore] = useState(0);
 	const [level, setLevel] = useState(1);
+	const [dragX, setDragX] = useState(0);
+	const { width, height } = useWindowDimensions();
 	
 	useEffect(() => {
 		const levelBaseScore = 1000;
@@ -303,6 +307,21 @@ const Game = () => {
 		setHintPlayer(calculateHintPlayer(player));
 	}, [player, calculateHintPlayer])
 
+  const bind = useDrag(({ down, movement: [mx, my] }) => {
+		const THRESHOLD = 20;
+		if (down){
+			if (Math.abs(mx - dragX) > THRESHOLD) {
+				if ((mx - dragX) > 0)
+					setPlayer(player => ({ ...player, pos: getNewPlayerPos("right") }))
+				else
+					setPlayer(player => ({ ...player, pos: getNewPlayerPos("left") }));
+				setDragX(mx);
+			}
+		} else {
+			setDragX(0);
+		}
+  }, {filterTaps: true})
+
 	if (!player || !map || !hintPlayer) return "loading";
 	return (
 		<div
@@ -311,6 +330,7 @@ const Game = () => {
 			tabIndex="0"
 			onKeyUp={keyUp}
 			onKeyDown={keyDown}
+			{...bind()}
 		>
 			<Stage map={map} player={player} hint={hintPlayer}
 				status={{lines, score, level}}
