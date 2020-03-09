@@ -2,7 +2,7 @@ import React, {useState, useEffect} from "react";
 import styled from "styled-components";
 
 import useWindowDimensions from '../../hooks/useWindowDimensions';
-import background from "../../images/background.jpg";
+import background from "../../images/background-min.jpg";
 import StatusRow from '../StatusRow';
 
 const Game = styled.div`
@@ -99,12 +99,6 @@ const getRenderizacaoBloco = bloco => {
 	});
 	return trimBloco;
 }
-
-const status = {
-	score: 120,
-	level: 1,
-	lines: 2
-};
 
 const Stage = ({ map, player, hint, status }) => {
 	
