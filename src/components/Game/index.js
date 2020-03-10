@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { useDrag } from 'react-use-gesture'
+import { useDrag } from "react-use-gesture";
 
 import Stage from "../Stage";
 import { useInterval } from "../../hooks/useInterval";
-import useWindowDimensions from '../../hooks/useWindowDimensions';
+import useWindowDimensions from "../../hooks/useWindowDimensions";
 
 import { PrintPlayerInMap } from "../../utils/Utils";
 
-//TODO: Portabilidade para mobile (botões)
+//TODO: Alterar OnClick (rotatePlayer) para OnFastClick (criar hook)
 //TODO: Organização do componente "Game" (Separar codigo em hooks, outros components e funcoes)
 //TODO: Dar um tempo quando o bloco estiver no chão, mas o usuário mexendo
 //TODO: Add stage themes
@@ -20,13 +20,13 @@ const initialMap = [...new Array(STAGE_HEIGHT)].map(() =>
 );
 
 const colors = [
-	'#e54b4b',
-	'#9a031e',
-	'#fcdc4d',
-	'#005397',
-	'#0bbcd6',
-	'#20ad65',
-	'#f8ebee'
+	"#e54b4b",
+	"#9a031e",
+	"#fcdc4d",
+	"#005397",
+	"#0bbcd6",
+	"#20ad65",
+	"#f8ebee"
 ];
 
 const I = {
@@ -116,16 +116,17 @@ const Game = () => {
 	const [score, setScore] = useState(0);
 	const [level, setLevel] = useState(1);
 	const [dragX, setDragX] = useState(0);
+	const [dragY, setDragY] = useState(0);
 	const { width, height } = useWindowDimensions();
-	
+
 	useEffect(() => {
 		const levelBaseScore = 1000;
 		const nextLevel = level + 1;
-		const nextLevelScore = (levelBaseScore * nextLevel * nextLevel * nextLevel) / 3;
-		console.log('Score to next level:', nextLevelScore);
-		console.log('Remaining: ', nextLevelScore - score);
-		if (level >= nextLevelScore)
-			setLevel(level + 1);
+		const nextLevelScore =
+			(levelBaseScore * nextLevel * nextLevel * nextLevel) / 3;
+		console.log("Score to next level:", nextLevelScore);
+		console.log("Remaining: ", nextLevelScore - score);
+		if (level >= nextLevelScore) setLevel(level + 1);
 	}, [level, score]);
 
 	const loseGame = () => {
@@ -133,7 +134,7 @@ const Game = () => {
 		setlines(0);
 		setScore(0);
 		setLevel(1);
-	}
+	};
 
 	const drop = () => {
 		if (!player) {
@@ -149,8 +150,7 @@ const Game = () => {
 					return mapCleared;
 				});
 				const newPlayer = getRandomPlayer(player);
-				if (!validatePosition(newPlayer.pos, newPlayer.bloco)) 
-					loseGame();
+				if (!validatePosition(newPlayer.pos, newPlayer.bloco)) loseGame();
 				return newPlayer;
 			}
 			return { ...player, pos: newPos };
@@ -172,28 +172,25 @@ const Game = () => {
 		// Activate the interval again when user releases down arrow.
 		if (keyCode === 40) {
 			setDown(false);
-			if ((Date.now() - tick) <= THRESHOLD)
-				drop();
+			if (Date.now() - tick <= THRESHOLD) drop();
 		}
-		if (keyCode === 32) 
-			setSpaceReleased(true);
+		if (keyCode === 32) setSpaceReleased(true);
 	};
 
 	const forwardDown = () => {
 		setPlayer(player => {
 			const playerCopy = JSON.parse(JSON.stringify(player));
-			playerCopy.pos = [ ...hintPlayer.pos ];
+			playerCopy.pos = [...hintPlayer.pos];
 			setMap(map => {
 				const mapWithPlayer = PrintPlayerInMap(playerCopy, map);
 				const mapCleared = checkMap(mapWithPlayer);
 				return mapCleared;
 			});
 			const newPlayer = getRandomPlayer(player);
-			if (!validatePosition(newPlayer.pos, newPlayer.bloco)) 
-				loseGame();
+			if (!validatePosition(newPlayer.pos, newPlayer.bloco)) loseGame();
 			return newPlayer;
 		});
-	}
+	};
 
 	const keyDown = ({ keyCode }) => {
 		switch (keyCode) {
@@ -243,9 +240,9 @@ const Game = () => {
 							}));
 			});
 			setlines(quant => quant + rowsClear.length);
-			const bonusLevel = (100 * (level * level));
-			const bonusRows = (40 * ((rowsClear.length * rowsClear.length) - 1));
-			setScore(score => score + (300 * rowsClear.length) + bonusRows + bonusLevel)
+			const bonusLevel = 100 * (level * level);
+			const bonusRows = 40 * (rowsClear.length * rowsClear.length - 1);
+			setScore(score => score + 300 * rowsClear.length + bonusRows + bonusLevel);
 			return newMap;
 		}
 		return map;
@@ -273,13 +270,16 @@ const Game = () => {
 		[map]
 	);
 
-	const calculateHintPlayer = React.useCallback((player) => {
-		const hintBloco = JSON.parse(JSON.stringify(player.bloco));
-		let hintPosition = [ ...player.pos ];
-		while (validatePosition([hintPosition[0] + 1, hintPosition[1]], hintBloco))
-			hintPosition = [hintPosition[0] + 1, hintPosition[1]];
-		return { pos: hintPosition, bloco: hintBloco };
-	}, [validatePosition]);
+	const calculateHintPlayer = React.useCallback(
+		player => {
+			const hintBloco = JSON.parse(JSON.stringify(player.bloco));
+			let hintPosition = [...player.pos];
+			while (validatePosition([hintPosition[0] + 1, hintPosition[1]], hintBloco))
+				hintPosition = [hintPosition[0] + 1, hintPosition[1]];
+			return { pos: hintPosition, bloco: hintBloco };
+		},
+		[validatePosition]
+	);
 
 	const getNewPlayerPos = React.useCallback(
 		movement => {
@@ -302,25 +302,38 @@ const Game = () => {
 	);
 
 	useEffect(() => {
-		if (!player)
-			return;
+		if (!player) return;
 		setHintPlayer(calculateHintPlayer(player));
-	}, [player, calculateHintPlayer])
+	}, [player, calculateHintPlayer]);
 
-  const bind = useDrag(({ down, movement: [mx, my] }) => {
-		const THRESHOLD = 20;
-		if (down){
-			if (Math.abs(mx - dragX) > THRESHOLD) {
-				if ((mx - dragX) > 0)
-					setPlayer(player => ({ ...player, pos: getNewPlayerPos("right") }))
-				else
-					setPlayer(player => ({ ...player, pos: getNewPlayerPos("left") }));
-				setDragX(mx);
+	const bind = useDrag(
+		({ down, movement: [mx, my], velocity }) => {
+			const THRESHOLD = 20;
+			const FORCE_THRESHOLD = 1;
+			if (down) {
+				if (Math.abs(mx - dragX) > THRESHOLD) {
+					if (mx - dragX > 0)
+						setPlayer(player => ({ ...player, pos: getNewPlayerPos("right") }));
+					else setPlayer(player => ({ ...player, pos: getNewPlayerPos("left") }));
+					setDragX(mx);
+				}
+				if (Math.abs(my - dragY) > THRESHOLD) {
+					if (velocity > FORCE_THRESHOLD) {
+						if (spaceReleased) {
+							setSpaceReleased(false);
+							forwardDown();
+						}
+					} else if (my - dragY > 0) drop();
+					setDragY(my);
+				}
+			} else {
+				setDragX(0);
+				setDragY(0);
+				setSpaceReleased(true);
 			}
-		} else {
-			setDragX(0);
-		}
-  }, {filterTaps: true})
+		},
+		{ filterTaps: true, lockDirection: true }
+	);
 
 	if (!player || !map || !hintPlayer) return "loading";
 	return (
@@ -330,10 +343,14 @@ const Game = () => {
 			tabIndex="0"
 			onKeyUp={keyUp}
 			onKeyDown={keyDown}
+			onClick={() => rotatePlayer()}
 			{...bind()}
 		>
-			<Stage map={map} player={player} hint={hintPlayer}
-				status={{lines, score, level}}
+			<Stage
+				map={map}
+				player={player}
+				hint={hintPlayer}
+				status={{ lines, score, level }}
 			/>
 		</div>
 	);
