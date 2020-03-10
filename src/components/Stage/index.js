@@ -5,6 +5,8 @@ import useWindowDimensions from '../../hooks/useWindowDimensions';
 import background from "../../images/background.jpg";
 import StatusRow from '../StatusRow';
 
+import Color from 'color';
+
 const Game = styled.div`
 	width: 100vw;
 	height: ${props => props.portrait ? '95' : '100'}vh;
@@ -27,7 +29,7 @@ const ContainerNext = styled.div`
 const Next = styled.div`
 	width: ${props => props.pixelSize * 3}px;
 	height: ${props => props.pixelSize * 3}px;
-	background-color: black;
+	background-color: #444;
 	border: ${props => props.pixelSize / 10}px solid white;
 	overflow: hidden;
 	display: flex;
@@ -38,7 +40,7 @@ const Next = styled.div`
 
 const StyledStage = styled.div`
 	border: ${props => props.pixelSize / 10}px solid white;
-	background-color: black;
+	background-color: #444;
 	overflow: hidden;
 	display: flex;
 	flex-direction: column;
@@ -60,12 +62,58 @@ const Pixel = React.memo(styled.div`
 			props.fill === 1
 				? props.color
 				: "inherited"};
-	box-shadow: ${props => 
-			props.hint 
-			? `inset 0 0 3px ${props.playerColor}, inset 0 0 3px white`
-			: 'none'};
-	border-left: 1px solid ${props => props.stage || props.fill || props.hint ? '#222' : 'black'};
-	border-top: 1px solid ${props => props.stage || props.fill || props.hint ? '#222' : 'black'};
+	position: relative;
+	z-index: ${props => props.zIndex};
+	${props => props.hint && `
+		box-shadow: inset 0 0 3px ${props.playerColor}, inset 0 0 3px white
+	`};
+	${props => props.fill && `;
+		box-shadow: 8px 8px 6px #222${props.topBloco ? `, 0 -8px 0 ${Color(props.color).lighten(0.2)}` : ''} 
+	`};
+	/* border-left: 1px solid ${props => props.stage || props.fill || props.hint ? '#222' : '#444'};
+	border-top: 1px solid ${props => props.stage || props.fill || props.hint ? '#222' : '#444'}; */
+
+	/* Right */
+/*	${props => (props.fill || props.hint) && `
+		::after {
+			content: "";
+			height: 102%;
+			width: ${(props.stage ? props.pixelSize : props.pixelSize / 1.6)/5}px;
+			background-color: ${props.fill === 1 ? Color(props.color).darken(0.2) : "inherited"};
+			position: absolute;
+			left: ${(props.stage ? props.pixelSize : props.pixelSize / 1.6)}px;
+			top: ${-(props.stage ? props.pixelSize : props.pixelSize / 1.6)/8.33}px;
+			left: 33px;
+			top: -4px;
+			border-left: 1px solid ${props.color};
+			transform: skewY(135deg);
+			box-shadow: ${props.hint 
+				? `inset 0 0 4px ${props.playerColor}, inset 0 0 4px white`
+				: 'none'};
+			z-index: -1;
+		}
+	`}*/
+
+	/* Top */
+	/* ${props => (props.fill || props.hint) && `
+		::before {
+			content: "";
+			width: 102%;
+			height: ${(props.stage ? props.pixelSize : props.pixelSize / 1.6)/5}px;
+			background-color: ${props.fill ? Color(props.color).lighten(0.2) : "#444"};
+			position: absolute;
+			left: ${(props.stage ? props.pixelSize : props.pixelSize / 1.6)/11.1}px;
+			top: ${-(props.stage ? props.pixelSize : props.pixelSize / 1.8)/4.76}px;
+			left: 3px;
+			top: -7px;
+			border-left: 1px solid ${props.color};
+			transform: skewX(135deg);
+			box-shadow: ${props.hint 
+				? `inset 0 0 3px ${props.playerColor}, inset 0 0 3px white`
+				: 'none'};
+			z-index: -1;
+	`} */
+
 `);
 
 const ContainerStatus = styled.div`
@@ -131,7 +179,7 @@ const Stage = ({ map, player, hint, status }) => {
 							<Row pixelSize={pixelSize} key={`row-${y}`}>
 								{row.map((pixel, x) => {
 									return (
-										<Pixel pixelSize={pixelSize} key={`pixel-${x}`} fill={pixel} color={player.next.color} />
+										<Pixel zIndex={y} pixelSize={pixelSize} key={`pixel-${x}`} fill={pixel} color={player.next.color} />
 									);
 								})}
 							</Row>
@@ -150,6 +198,17 @@ const Stage = ({ map, player, hint, status }) => {
 								let playerHint =
 									hint.bloco.bloco[y - hint.pos[0]] &&
 									hint.bloco.bloco[y - hint.pos[0]][x - hint.pos[1]];
+								let topBloco =
+									((
+										playerFill || pixel.fill
+									) && (
+										!player.bloco.bloco[y - player.pos[0] - 1] ||
+										!player.bloco.bloco[y - player.pos[0] - 1][x - player.pos[1]] 	
+									)) && (
+										!map[y-1] || 
+										!map[y-1][x].fill
+									);
+								let zIndex = !playerFill && !pixel.fill && playerHint ? 99 : y;
 								return (
 									<Pixel 
 										hint={playerHint}
@@ -159,6 +218,8 @@ const Stage = ({ map, player, hint, status }) => {
 										fill={pixel.fill | playerFill}
 										color={playerFill ? player.bloco.color : pixel.color}
 										playerColor={player.bloco.color}
+										topBloco={topBloco}
+										zIndex={zIndex}
 									>
 									</Pixel>
 								);
