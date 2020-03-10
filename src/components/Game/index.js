@@ -3,7 +3,6 @@ import { useDrag } from "react-use-gesture";
 
 import Stage from "../Stage";
 import { useInterval } from "../../hooks/useInterval";
-import useWindowDimensions from "../../hooks/useWindowDimensions";
 
 import { PrintPlayerInMap } from "../../utils/Utils";
 
@@ -117,16 +116,16 @@ const Game = () => {
 	const [level, setLevel] = useState(1);
 	const [dragX, setDragX] = useState(0);
 	const [dragY, setDragY] = useState(0);
-	const { width, height } = useWindowDimensions();
 
 	useEffect(() => {
 		const levelBaseScore = 1000;
 		const nextLevel = level + 1;
 		const nextLevelScore =
-			(levelBaseScore * nextLevel * nextLevel * nextLevel) / 3;
+			(levelBaseScore * nextLevel * nextLevel * nextLevel) / 5;
+		console.log("Current level: ", level);
 		console.log("Score to next level:", nextLevelScore);
 		console.log("Remaining: ", nextLevelScore - score);
-		if (level >= nextLevelScore) setLevel(level + 1);
+		if (score >= nextLevelScore) setLevel(level + 1);
 	}, [level, score]);
 
 	const loseGame = () => {
@@ -218,35 +217,38 @@ const Game = () => {
 		}
 	};
 
-	const checkMap = React.useCallback(map => {
-		let rowsClear = [];
-		map.forEach((row, y) => {
-			let clear = true;
-			row.forEach((pixel, x) => {
-				if (pixel.fill === 0) clear = false;
+	const checkMap = React.useCallback(
+		map => {
+			let rowsClear = [];
+			map.forEach((row, y) => {
+				let clear = true;
+				row.forEach((pixel, x) => {
+					if (pixel.fill === 0) clear = false;
+				});
+				if (clear) rowsClear.push(y);
 			});
-			if (clear) rowsClear.push(y);
-		});
-		if (rowsClear.length > 0) {
-			let newMap = map.slice();
-			rowsClear.forEach(y => {
-				for (let mapY = newMap.length - 1; mapY >= 0; mapY--)
-					if (mapY <= y)
-						if (mapY > 0) newMap[mapY] = newMap[mapY - 1];
-						else
-							newMap[mapY] = [...new Array(STAGE_WIDTH)].map(() => ({
-								fill: 0,
-								color: []
-							}));
-			});
-			setlines(quant => quant + rowsClear.length);
-			const bonusLevel = 100 * (level * level);
-			const bonusRows = 40 * (rowsClear.length * rowsClear.length - 1);
-			setScore(score => score + 300 * rowsClear.length + bonusRows + bonusLevel);
-			return newMap;
-		}
-		return map;
-	}, []);
+			if (rowsClear.length > 0) {
+				let newMap = map.slice();
+				rowsClear.forEach(y => {
+					for (let mapY = newMap.length - 1; mapY >= 0; mapY--)
+						if (mapY <= y)
+							if (mapY > 0) newMap[mapY] = newMap[mapY - 1];
+							else
+								newMap[mapY] = [...new Array(STAGE_WIDTH)].map(() => ({
+									fill: 0,
+									color: []
+								}));
+				});
+				setlines(quant => quant + rowsClear.length);
+				const bonusLevel = 100 * (level * level);
+				const bonusRows = 40 * (rowsClear.length * rowsClear.length - 1);
+				setScore(score => score + 300 * rowsClear.length + bonusRows + bonusLevel);
+				return newMap;
+			}
+			return map;
+		},
+		[level]
+	);
 
 	const validatePosition = React.useCallback(
 		(pos, bloco) => {
@@ -298,7 +300,7 @@ const Game = () => {
 		() => {
 			drop();
 		},
-		pause ? null : down ? 50 : 450
+		pause ? null : down ? 50 : 450 - (level - 1) * 20
 	);
 
 	useEffect(() => {
