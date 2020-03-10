@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { useDrag } from "react-use-gesture";
+import BarLoader from "react-spinners/BarLoader";
 
 import Stage from "../Stage";
 import { useInterval } from "../../hooks/useInterval";
+import Center from "../Center";
 
 import { PrintPlayerInMap } from "../../utils/Utils";
 
@@ -337,7 +339,12 @@ const Game = () => {
 		{ filterTaps: true, lockDirection: true }
 	);
 
-	if (!player || !map || !hintPlayer) return "loading";
+	if (!player || !map || !hintPlayer)
+		return (
+			<Center>
+				<BarLoader color={"#C41212"} />
+			</Center>
+		);
 	return (
 		<div
 			onBlur={() => setPause(true)}
