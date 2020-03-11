@@ -11,7 +11,6 @@ import { PrintPlayerInMap } from "../../utils/Utils";
 //TODO: Alterar OnClick (rotatePlayer) para OnFastClick (criar hook)
 //TODO: Organização do componente "Game" (Separar codigo em hooks, outros components e funcoes)
 //TODO: Dar um tempo quando o bloco estiver no chão, mas o usuário mexendo
-//TODO: Add stage themes
 
 const STAGE_HEIGHT = 18;
 const STAGE_WIDTH = 10;
@@ -346,7 +345,11 @@ const Game = () => {
 			</Center>
 		);
 	return (
-		<div
+		<Stage
+			map={map}
+			player={player}
+			hint={hintPlayer}
+			status={{ lines, score, level }}
 			onBlur={() => setPause(true)}
 			onFocus={() => setPause(false)}
 			tabIndex="0"
@@ -354,14 +357,7 @@ const Game = () => {
 			onKeyDown={keyDown}
 			onClick={() => rotatePlayer()}
 			{...bind()}
-		>
-			<Stage
-				map={map}
-				player={player}
-				hint={hintPlayer}
-				status={{ lines, score, level }}
-			/>
-		</div>
+		/>
 	);
 };
 

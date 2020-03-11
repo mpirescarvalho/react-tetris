@@ -2,7 +2,7 @@ import React from 'react';
 import styled from 'styled-components';
 
 const Container = styled.div`
-	background-color: black;
+	background-color: ${props => props.backgroundColor ? props.backgroundColor : 'black'};
 	border: ${props => props.borderSize ? props.borderSize : '3'}px solid white;
 	${props => !props.portrait && `width: 100%;`}
 	font-family: "ZCOOL QingKe HuangYou", cursive;
@@ -22,8 +22,8 @@ const Value = styled.div`
 	color: white;
 `;
 
-const StatusRow = ({title, value, padding, margin, borderSize, portrait}) => (
-	<Container portrait={portrait} padding={padding} margin={margin} borderSize={borderSize}>
+const StatusRow = ({title, value, padding, margin, borderSize, portrait, backgroundColor}) => (
+	<Container portrait={portrait} padding={padding} margin={margin} borderSize={borderSize} backgroundColor={backgroundColor}>
 		<Title>
 			{title}
 		</Title>

@@ -14,6 +14,8 @@
 		"react-scripts": "^3.4.0",
 		"react-spinners": "^0.8.1",
 		"react-spring": "^8.0.27",
+		"react-switch": "^5.0.1",
+		"react-toggle": "^4.1.1",
 		"react-use-gesture": "^7.0.5",
 		"styled-components": "5.0.1"
 	},
