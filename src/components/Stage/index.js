@@ -73,47 +73,6 @@ const Pixel = React.memo(styled.div`
 	/* border-left: 1px solid ${props => props.stage || props.fill || props.hint ? '#222' : '#444'};
 	border-top: 1px solid ${props => props.stage || props.fill || props.hint ? '#222' : '#444'}; */
 
-	/* Right */
-/*	${props => (props.fill || props.hint) && `
-		::after {
-			content: "";
-			height: 102%;
-			width: ${(props.stage ? props.pixelSize : props.pixelSize / 1.6)/5}px;
-			background-color: ${props.fill === 1 ? Color(props.color).darken(0.2) : "inherited"};
-			position: absolute;
-			left: ${(props.stage ? props.pixelSize : props.pixelSize / 1.6)}px;
-			top: ${-(props.stage ? props.pixelSize : props.pixelSize / 1.6)/8.33}px;
-			left: 33px;
-			top: -4px;
-			border-left: 1px solid ${props.color};
-			transform: skewY(135deg);
-			box-shadow: ${props.hint 
-				? `inset 0 0 4px ${props.playerColor}, inset 0 0 4px white`
-				: 'none'};
-			z-index: -1;
-		}
-	`}*/
-
-	/* Top */
-	/* ${props => (props.fill || props.hint) && `
-		::before {
-			content: "";
-			width: 102%;
-			height: ${(props.stage ? props.pixelSize : props.pixelSize / 1.6)/5}px;
-			background-color: ${props.fill ? Color(props.color).lighten(0.2) : "#444"};
-			position: absolute;
-			left: ${(props.stage ? props.pixelSize : props.pixelSize / 1.6)/11.1}px;
-			top: ${-(props.stage ? props.pixelSize : props.pixelSize / 1.8)/4.76}px;
-			left: 3px;
-			top: -7px;
-			border-left: 1px solid ${props.color};
-			transform: skewX(135deg);
-			box-shadow: ${props.hint 
-				? `inset 0 0 3px ${props.playerColor}, inset 0 0 3px white`
-				: 'none'};
-			z-index: -1;
-	`} */
-
 `);
 
 const ContainerStatus = styled.div`
