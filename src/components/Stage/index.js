@@ -79,7 +79,13 @@ const Pixel = React.memo(styled.div`
 	background-color: ${props => (props.fill === 1 ? props.color : "inherited")};
 	position: relative;
 	z-index: ${props => props.zIndex};
-	transition: box-shadow 0.5s, border-left 0.5s, border-top 0.5s;
+
+	${props =>
+		props.paused &&
+		`
+		transition: all 1s;
+	`};
+
 	${props =>
 		props.fill &&
 		props.theme3d &&
@@ -160,7 +166,7 @@ const getRenderizacaoBloco = bloco => {
 	return trimBloco;
 };
 
-const Stage = ({ map, player, hint, status, ...others }) => {
+const Stage = ({ map, player, hint, status, paused, ...others }) => {
 	const [pixelSize, setPixelSize] = useState(30);
 	const [portrait, setPortrait] = useState(false);
 	const { width, height } = useWindowDimensions();
@@ -196,6 +202,7 @@ const Stage = ({ map, player, hint, status, ...others }) => {
 									let topBloco = pixel && (!nextRender[y - 1] || !nextRender[y - 1][x]);
 									return (
 										<Pixel
+											paused={paused}
 											theme3d={theme3d}
 											topBloco={topBloco}
 											zIndex={y}
@@ -263,6 +270,7 @@ const Stage = ({ map, player, hint, status, ...others }) => {
 								let zIndex = !playerFill && !pixel.fill && playerHint ? 99 : y;
 								return (
 									<Pixel
+										paused={paused}
 										theme3d={theme3d}
 										hint={!pixel.fill && !playerFill && playerHint}
 										pixelSize={pixelSize}

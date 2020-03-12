@@ -349,6 +349,7 @@ const Game = () => {
 			map={map}
 			player={player}
 			hint={hintPlayer}
+			paused={pause}
 			status={{ lines, score, level }}
 			onBlur={() => setPause(true)}
 			onFocus={() => setPause(false)}
