@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import styled from "styled-components";
 import Switch from "react-switch";
 
 import useWindowDimensions from "../../hooks/useWindowDimensions";
 import background from "../../images/background.jpg";
 import StatusRow from "../StatusRow";
+import LoseGame from '../LoseGame';
 
 import Color from "color";
 
@@ -166,12 +167,13 @@ const getRenderizacaoBloco = bloco => {
 	return trimBloco;
 };
 
-const Stage = ({ map, player, hint, status, paused, ...others }) => {
+const Stage = ({ lose, restartClick, map, player, hint, status, paused, ...others }) => {
 	const [pixelSize, setPixelSize] = useState(30);
 	const [portrait, setPortrait] = useState(false);
 	const { width, height } = useWindowDimensions();
 	const [theme3d, setTheme3d] = useState(false);
 	const [nextRender, setNextRender] = useState();
+	const stageRef = useRef(null);
 
 	useEffect(() => {
 		let pixelSizeHeight = height / 20;
@@ -191,135 +193,150 @@ const Stage = ({ map, player, hint, status, paused, ...others }) => {
 		setNextRender(getRenderizacaoBloco(player.next.bloco));
 	}, [player.next]);
 
+	useEffect(() => {
+		if (!lose) {
+			stageRef.current.focus();
+		}
+	}, [lose]);
+
+	useEffect(() => {
+		stageRef.current.focus();
+	}, [theme3d]);
+
 	return (
-		<Game portrait={portrait}>
-			{nextRender && (
-				<ContainerNext portrait={portrait} pixelSize={pixelSize}>
-					<Next portrait={portrait} theme3d={theme3d} pixelSize={pixelSize}>
-						{nextRender.map((row, y) => (
-							<Row pixelSize={pixelSize} key={`row-${y}`}>
+		<div>
+			<Game portrait={portrait}>
+				{nextRender && (
+					<ContainerNext portrait={portrait} pixelSize={pixelSize}>
+						<Next portrait={portrait} theme3d={theme3d} pixelSize={pixelSize}>
+							{nextRender.map((row, y) => (
+								<Row pixelSize={pixelSize} key={`row-${y}`}>
+									{row.map((pixel, x) => {
+										let topBloco = pixel && (!nextRender[y - 1] || !nextRender[y - 1][x]);
+										return (
+											<Pixel
+												paused={paused}
+												theme3d={theme3d}
+												topBloco={topBloco}
+												zIndex={y}
+												pixelSize={pixelSize}
+												key={`pixel-${x}`}
+												fill={pixel}
+												color={player.next.color}
+											/>
+										);
+									})}
+								</Row>
+							))}
+						</Next>
+						<ContainerSwitch portrait={portrait}>
+							<Switch
+								width={pixelSize * 2}
+								height={pixelSize / 1.2}
+								onChange={setTheme3d}
+								checked={theme3d}
+								offColor="#000"
+								onColor="#444"
+								uncheckedIcon={
+									<Center>
+										<Pixel
+											theme3d={false}
+											pixelSize={pixelSize / 3}
+											stage="true"
+											fill={1}
+											color={"#e54b4b"}
+										/>
+									</Center>
+								}
+								checkedIcon={
+									<Center>
+										<Pixel
+											theme3d="true"
+											pixelSize={pixelSize / 3}
+											stage="true"
+											fill={1}
+											color={"#e54b4b"}
+											topBloco="true"
+										/>
+									</Center>
+								}
+							/>
+						</ContainerSwitch>
+					</ContainerNext>
+				)}
+				{map && (
+					<StyledStage ref={stageRef} {...others} theme3d={theme3d} pixelSize={pixelSize}>
+						{map.map((row, y) => (
+							<Row stage="true" pixelSize={pixelSize} key={`row-${y}`}>
 								{row.map((pixel, x) => {
-									let topBloco = pixel && (!nextRender[y - 1] || !nextRender[y - 1][x]);
+									let playerFill =
+										player.bloco.bloco[y - player.pos[0]] &&
+										player.bloco.bloco[y - player.pos[0]][x - player.pos[1]];
+									let playerHint =
+										hint.bloco.bloco[y - hint.pos[0]] &&
+										hint.bloco.bloco[y - hint.pos[0]][x - hint.pos[1]];
+									let topBloco =
+										(playerFill || pixel.fill) &&
+										(!player.bloco.bloco[y - player.pos[0] - 1] ||
+											!player.bloco.bloco[y - player.pos[0] - 1][x - player.pos[1]]) &&
+										(!map[y - 1] || !map[y - 1][x].fill);
+									let zIndex = !playerFill && !pixel.fill && playerHint ? 99 : y;
 									return (
 										<Pixel
 											paused={paused}
 											theme3d={theme3d}
-											topBloco={topBloco}
-											zIndex={y}
+											hint={!pixel.fill && !playerFill && playerHint}
 											pixelSize={pixelSize}
+											stage="true"
 											key={`pixel-${x}`}
-											fill={pixel}
-											color={player.next.color}
-										/>
+											fill={pixel.fill || playerFill}
+											color={playerFill ? player.bloco.color : pixel.color}
+											playerColor={player.bloco.color}
+											topBloco={topBloco}
+											zIndex={zIndex}
+										></Pixel>
 									);
 								})}
 							</Row>
 						))}
-					</Next>
-					<ContainerSwitch portrait={portrait}>
-						<Switch
-							width={pixelSize * 2}
-							height={pixelSize / 1.2}
-							onChange={setTheme3d}
-							checked={theme3d}
-							offColor="#000"
-							onColor="#444"
-							uncheckedIcon={
-								<Center>
-									<Pixel
-										theme3d={false}
-										pixelSize={pixelSize / 3}
-										stage="true"
-										fill={1}
-										color={"#e54b4b"}
-									/>
-								</Center>
-							}
-							checkedIcon={
-								<Center>
-									<Pixel
-										theme3d="true"
-										pixelSize={pixelSize / 3}
-										stage="true"
-										fill={1}
-										color={"#e54b4b"}
-										topBloco="true"
-									/>
-								</Center>
-							}
+					</StyledStage>
+				)}
+				{status && (
+					<ContainerStatus portrait={portrait} pixelSize={pixelSize}>
+						<StatusRow
+							backgroundColor={theme3d ? "#444" : "black"}
+							portrait={portrait}
+							borderSize={pixelSize / 10}
+							margin={pixelSize / 3}
+							padding={pixelSize / 2}
+							title="SCORE"
+							value={status.score}
 						/>
-					</ContainerSwitch>
-				</ContainerNext>
-			)}
-			{map && (
-				<StyledStage {...others} theme3d={theme3d} pixelSize={pixelSize}>
-					{map.map((row, y) => (
-						<Row stage="true" pixelSize={pixelSize} key={`row-${y}`}>
-							{row.map((pixel, x) => {
-								let playerFill =
-									player.bloco.bloco[y - player.pos[0]] &&
-									player.bloco.bloco[y - player.pos[0]][x - player.pos[1]];
-								let playerHint =
-									hint.bloco.bloco[y - hint.pos[0]] &&
-									hint.bloco.bloco[y - hint.pos[0]][x - hint.pos[1]];
-								let topBloco =
-									(playerFill || pixel.fill) &&
-									(!player.bloco.bloco[y - player.pos[0] - 1] ||
-										!player.bloco.bloco[y - player.pos[0] - 1][x - player.pos[1]]) &&
-									(!map[y - 1] || !map[y - 1][x].fill);
-								let zIndex = !playerFill && !pixel.fill && playerHint ? 99 : y;
-								return (
-									<Pixel
-										paused={paused}
-										theme3d={theme3d}
-										hint={!pixel.fill && !playerFill && playerHint}
-										pixelSize={pixelSize}
-										stage="true"
-										key={`pixel-${x}`}
-										fill={pixel.fill || playerFill}
-										color={playerFill ? player.bloco.color : pixel.color}
-										playerColor={player.bloco.color}
-										topBloco={topBloco}
-										zIndex={zIndex}
-									></Pixel>
-								);
-							})}
-						</Row>
-					))}
-				</StyledStage>
-			)}
-			{status && (
-				<ContainerStatus portrait={portrait} pixelSize={pixelSize}>
-					<StatusRow
-						backgroundColor={theme3d ? "#444" : "black"}
-						portrait={portrait}
-						borderSize={pixelSize / 10}
-						margin={pixelSize / 3}
-						padding={pixelSize / 2}
-						title="SCORE"
-						value={status.score}
-					/>
-					<StatusRow
-						backgroundColor={theme3d ? "#444" : "black"}
-						portrait={portrait}
-						borderSize={pixelSize / 10}
-						margin={pixelSize / 3}
-						padding={pixelSize / 2}
-						title="LEVEL"
-						value={status.level}
-					/>
-					<StatusRow
-						backgroundColor={theme3d ? "#444" : "black"}
-						portrait={portrait}
-						borderSize={pixelSize / 10}
-						margin={pixelSize / 3}
-						padding={pixelSize / 2}
-						title="LINES"
-						value={status.lines}
-					/>
-				</ContainerStatus>
-			)}
-		</Game>
+						<StatusRow
+							backgroundColor={theme3d ? "#444" : "black"}
+							portrait={portrait}
+							borderSize={pixelSize / 10}
+							margin={pixelSize / 3}
+							padding={pixelSize / 2}
+							title="LEVEL"
+							value={status.level}
+						/>
+						<StatusRow
+							backgroundColor={theme3d ? "#444" : "black"}
+							portrait={portrait}
+							borderSize={pixelSize / 10}
+							margin={pixelSize / 3}
+							padding={pixelSize / 2}
+							title="LINES"
+							value={status.lines}
+						/>
+					</ContainerStatus>
+				)}
+			</Game>
+			{ lose && 
+				<LoseGame portrait={portrait} restartClick={restartClick} status={status} pixelSize={pixelSize} theme3d={theme3d}>
+				</LoseGame>}
+		</div>
 	);
 };
 

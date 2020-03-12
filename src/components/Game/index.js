@@ -117,6 +117,7 @@ const Game = () => {
 	const [level, setLevel] = useState(1);
 	const [dragX, setDragX] = useState(0);
 	const [dragY, setDragY] = useState(0);
+	const [gameOver, setGameOver] = useState(false);
 
 	useEffect(() => {
 		const levelBaseScore = 1000;
@@ -129,11 +130,16 @@ const Game = () => {
 		if (score >= nextLevelScore) setLevel(level + 1);
 	}, [level, score]);
 
-	const loseGame = () => {
+	const restartGame = () => {
 		setMap(initialMap); //TODO: lose game
 		setlines(0);
 		setScore(0);
 		setLevel(1);
+		setGameOver(false);
+	}
+
+	const loseGame = () => {
+		setGameOver(true);
 	};
 
 	const drop = () => {
@@ -168,6 +174,8 @@ const Game = () => {
 	};
 
 	const keyUp = ({ keyCode }) => {
+		if (pause || gameOver)
+			return;
 		const THRESHOLD = 80;
 		// Activate the interval again when user releases down arrow.
 		if (keyCode === 40) {
@@ -178,6 +186,8 @@ const Game = () => {
 	};
 
 	const forwardDown = () => {
+		if (pause || gameOver)
+			return;
 		setPlayer(player => {
 			const playerCopy = JSON.parse(JSON.stringify(player));
 			playerCopy.pos = [...hintPlayer.pos];
@@ -193,6 +203,8 @@ const Game = () => {
 	};
 
 	const keyDown = ({ keyCode }) => {
+		if (pause || gameOver)
+			return;
 		switch (keyCode) {
 			case 37:
 				setPlayer(player => ({ ...player, pos: getNewPlayerPos("left") }));
@@ -301,7 +313,7 @@ const Game = () => {
 		() => {
 			drop();
 		},
-		pause ? null : down ? 50 : 450 - (level - 1) * 20
+		(pause || gameOver) ? null : down ? 50 : 450 - (level - 1) * 20
 	);
 
 	useEffect(() => {
@@ -346,6 +358,8 @@ const Game = () => {
 		);
 	return (
 		<Stage
+			lose={gameOver}
+			restartClick={() => restartGame()}
 			map={map}
 			player={player}
 			hint={hintPlayer}
